@@ -1,0 +1,79 @@
+name: Daily Analytics Pipeline (Extract, Load, Transform)
+
+on:
+  schedule:
+    # Runs every day at 12:00 UTC (09:00 BRT)
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Allows manual trigger from the GitHub UI
+
+env:
+  # These are mapped from GitHub Secrets for GCP Authentication
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_GCS_BUCKET: ${{ secrets.GCP_GCS_BUCKET }}
+
+jobs:
+  extract-and-load:
+    name: Run Python EL Script (CoinGecko API to GCS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Run Extraction Script
+        run: python src/extract_load.py
+
+  transform-dbt:
+    name: Run dbt Core Transformations (BigQuery)
+    needs: extract-and-load # Wait for the EL job to finish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dbt BigQuery
+        run: pip install dbt-bigquery==1.7.0
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Run dbt Models
+        run: |
+          cd dbt_project
+          # Export credentials path for dbt profile evaluation
+          export GOOGLE_APPLICATION_CREDENTIALS="${{ env.GOOGLE_GHA_CREDS_PATH }}"
+          
+          # Install deps (if any packages.yml existed)
+          dbt deps
+          
+          # Run Staging and Marts
+          dbt run --profiles-dir .
+          
+      - name: Test Data Quality
+        run: |
+          cd dbt_project
+          export GOOGLE_APPLICATION_CREDENTIALS="${{ env.GOOGLE_GHA_CREDS_PATH }}"
+          
+          # Run configured tests (NotNull, AcceptedValues)
+          dbt test --profiles-dir .
