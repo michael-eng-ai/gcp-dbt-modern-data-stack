@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: fct_crypto_metrics
+    description: "Core fact table with daily aggregated crypto metrics for BI consumption."
+    columns:
+      - name: coin_id
+        description: "Unique identifier for the cryptocurrency."
+        tests:
+          - not_null
+      
+      - name: execution_date
+        description: "The partition date of the snapshot."
+        tests:
+          - not_null
+          
+      - name: avg_daily_price_usd
+        description: "The average price of the coin in USD for the given execution date."
+        tests:
+          - not_null
+          
+      - name: volatility_status
+        description: "A calculated flag categorizing the daily volatility (High Growth, Stable, High Drop)."
+        tests:
+          - accepted_values:
+              values: ['High Growth', 'Stable', 'High Drop']

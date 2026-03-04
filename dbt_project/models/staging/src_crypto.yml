@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: crypto_raw
+    database: "{{ env_var('GCP_PROJECT_ID', 'fake-gcp-project-123456') }}"
+    schema: crypto_dbt_analytics # BigQuery creates the external table here via our Python job 
+    # Mapeando como se a tabela raw fosse gerenciada pelo job Python
+    tables:
+      - name: raw_crypto_prices
+        description: "Raw cryptocurrency data dumped directly from CoinGecko API."

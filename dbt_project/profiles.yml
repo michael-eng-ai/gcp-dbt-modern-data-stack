@@ -1,0 +1,14 @@
+crypto_bg_profile:
+  outputs:
+    dev:
+      dataset: crypto_dbt_analytics 
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS', '/tmp/fake_key.json') }}"
+      location: us-central1
+      method: service-account
+      priority: interactive
+      project: "{{ env_var('GCP_PROJECT_ID', 'fake-gcp-project-123456') }}"
+      threads: 4
+      type: bigquery
+  target: dev
