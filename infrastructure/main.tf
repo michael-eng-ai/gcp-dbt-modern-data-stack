@@ -22,6 +22,12 @@ resource "google_storage_bucket" "crypto_data_lake" {
 
   uniform_bucket_level_access = true
 
+  labels = {
+    environment = "prod"
+    managed_by  = "terraform"
+    project     = "gcp-dbt-modern-data-stack"
+  }
+
   lifecycle_rule {
     condition {
       age = 30 # Delete raw files after 30 days to save costs
@@ -41,4 +47,10 @@ resource "google_bigquery_dataset" "dbt_analytics_dataset" {
   description                = "Dataset for storing Silver and Gold models managed by dbt Core"
   location                   = var.region
   delete_contents_on_destroy = true # Only for portfolio dev cleanup
+
+  labels = {
+    environment = "prod"
+    managed_by  = "terraform"
+    project     = "gcp-dbt-modern-data-stack"
+  }
 }
