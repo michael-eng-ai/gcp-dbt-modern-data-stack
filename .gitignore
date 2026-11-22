@@ -1,0 +1,19 @@
+# dbt (gerados por parse/build)
+dbt_project/target/
+dbt_project/logs/
+dbt_project/dbt_packages/
+dbt_project/.user.yml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Segredos
+.env
