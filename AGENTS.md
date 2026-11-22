@@ -72,8 +72,8 @@ Ao reportar o trabalho, diga qual das três situações ocorreu e cole a última
 
 ## Estado atual que engana
 
-- A execução verde do GitHub Actions não prova nada: autenticação, `dbt run` e `dbt test` estão com `continue-on-error: true`. A evidência válida é a saída do `scripts/verify.sh`.
-- A CI instala `dbt-bigquery==1.7.0`, que hoje quebra no import com a versão atual de `google-cloud-bigquery`. Localmente use a `1.7.9`.
+- A CI exige os secrets `GCP_SA_KEY`, `GCP_PROJECT_ID` e `GCP_GCS_BUCKET`. Sem `GCP_SA_KEY` ela falha na autenticação, de propósito. O job de dbt verde significa que modelos e testes rodaram; o job de extração verde ainda não garante o envio ao GCS (ver abaixo).
+- Não volte para `dbt-bigquery==1.7.0`: essa versão quebra no import com a `google-cloud-bigquery` atual. Use a `1.7.9`, a mesma da CI.
 - A tabela de origem `crypto_dbt_analytics.raw_crypto_prices` não é criada por nenhum código deste repositório: o script de extração só envia Parquet ao GCS. O `dbt build` depende de ela existir.
 - `upload_to_gcs` em `src/extract_load.py` pula o envio quando faltam credenciais e captura exceções sem relançar. O script termina com sucesso mesmo sem ter enviado nada.
 - `stg_crypto` ainda não tem entrada em `schema.yml`.
